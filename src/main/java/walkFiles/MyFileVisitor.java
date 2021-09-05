@@ -37,6 +37,7 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
     ArrayList<Path> jpgList = new ArrayList<>();
 
     private ArrayList<Path> checkArr = new ArrayList<>();
+
     public ArrayList<Path> getCheckArr() {
         return checkArr;
     }
@@ -67,12 +68,12 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
                     .filter(Files::isRegularFile)
                     .forEach(file -> {
 
-                        if (!checkArr.contains(file)){
-                            if (file.toString().endsWith("rtf")) {
+                        if (!checkArr.contains(file)) {
+                            if (file.toString().endsWith("rtf") && !file.toString().toLowerCase().contains("расчет")) {
                                 rtfPath = file;
                             }
 
-                            if (file.toString().endsWith("pdf")) {
+                            if (file.toString().endsWith("pdf") && !file.toString().toLowerCase().contains("запрос")) {
                                 pdfPath = file;
                             }
 
@@ -86,7 +87,7 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
         }
 
 
-        if (rtfPath != null && !rtfPath.toString().toLowerCase().contains("расчет")) {
+        if (rtfPath != null) {
             creditorName = rtfPath.getFileName().toString()
                     .replace("_", " ")
                     .replace("Справка", "")
@@ -109,23 +110,21 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
 
             try {
 
-                if (!pdfPath.toString().toLowerCase().contains("запрос")) {//Изучить условие
 
-                    PDDocument doc = PDDocument.load(pdfPath.toFile());
-                    int count = doc.getNumberOfPages();
-                    doc.close();
+                PDDocument doc = PDDocument.load(pdfPath.toFile());
+                int count = doc.getNumberOfPages();
+                doc.close();
 
-                    String index = indVisual(indCount++);
-                    String newFileName = "Копия требования кредитора с приложениями (" +
-                            index + ", " + creditorName + ") на " + count + "л..pdf";
+                String index = indVisual(indCount++);
+                String newFileName = "Копия требования кредитора с приложениями (" +
+                        index + ", " + creditorName + ") на " + count + "л..pdf";
 
 
-                    if (!Files.exists(Paths.get(newFolder + "\\" + newFileName))) {
-                        Files.copy(pdfPath, Paths.get(newFolder + "\\" + newFileName));
-                    }
-
-                    list.add(new Info(index, creditorName));
+                if (!Files.exists(Paths.get(newFolder + "\\" + newFileName))) {
+                    Files.copy(pdfPath, Paths.get(newFolder + "\\" + newFileName));
                 }
+
+                list.add(new Info(index, creditorName));
 
 
             } catch (IOException e) {
@@ -174,8 +173,6 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
         }
 
         stepsCount++;
-
-
         return FileVisitResult.CONTINUE;
     }
 

@@ -24,9 +24,7 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
 
     private List<Info> list;
 
-
     private int indCount = 1;
-
 
     public MyFileVisitor(List<Info> list) {
         this.list = list;
@@ -38,15 +36,21 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
     String creditorName = "";
     ArrayList<Path> jpgList = new ArrayList<>();
 
+    private ArrayList<Path> checkArr = new ArrayList<>();
+    public ArrayList<Path> getCheckArr() {
+        return checkArr;
+    }
+
+
     int stepsCount = 0;
-
-
 
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 
+
         jpgList.clear();
+
         creditorName = "";
         pdfPath = null;
         rtfPath = null;
@@ -57,31 +61,29 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
             Files.createDirectory(Paths.get(newFolder));
         }
 
-        if (stepsCount != 0){
+        if (stepsCount != 0) {
             Stream<Path> filePathStream = Files.walk(dir);
             filePathStream
                     .filter(Files::isRegularFile)
                     .forEach(file -> {
 
-                        if (file.toString().endsWith("rtf")) {
-                            rtfPath = file;
+                        if (!checkArr.contains(file)){
+                            if (file.toString().endsWith("rtf")) {
+                                rtfPath = file;
+                            }
+
+                            if (file.toString().endsWith("pdf")) {
+                                pdfPath = file;
+                            }
+
+                            if (file.toString().endsWith("jpg")) {
+                                jpgList.add(file);
+                            }
                         }
 
-                        if (file.toString().endsWith("pdf")) {
-                            pdfPath = file;
-                        }
-
-                        if (file.toString().endsWith("jpg")) {
-                            jpgList.add(file);
-                        }
+                        checkArr.add(file);
                     });
         }
-
-
-
-
-
-
 
 
         if (rtfPath != null && !rtfPath.toString().toLowerCase().contains("расчет")) {
@@ -90,6 +92,7 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
                     .replace("Справка", "")
                     .replace("Материалы", "")
                     .replace("материалы", "")
+                    .replace("Материалы", "")
                     .replace("справка", "")
                     .replace(".rtf", "")
                     .replace("по установлению требований кредиторов", "")
@@ -105,11 +108,13 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
             }
 
             try {
-                PDDocument doc = PDDocument.load(pdfPath.toFile());
-                int count = doc.getNumberOfPages();
-                doc.close();
 
-                if (count > 1) {
+                if (!pdfPath.toString().toLowerCase().contains("запрос")) {//Изучить условие
+
+                    PDDocument doc = PDDocument.load(pdfPath.toFile());
+                    int count = doc.getNumberOfPages();
+                    doc.close();
+
                     String index = indVisual(indCount++);
                     String newFileName = "Копия требования кредитора с приложениями (" +
                             index + ", " + creditorName + ") на " + count + "л..pdf";
@@ -119,9 +124,9 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
                         Files.copy(pdfPath, Paths.get(newFolder + "\\" + newFileName));
                     }
 
-
                     list.add(new Info(index, creditorName));
                 }
+
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -143,31 +148,15 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
                     InputStream in = new FileInputStream(imgPass.toString());
                     BufferedImage bimg = ImageIO.read(in);
 
-                    float width = bimg.getWidth() ;
+                    float width = bimg.getWidth();
                     float height = bimg.getHeight();
                     PDPage page = new PDPage(new PDRectangle(width, height));
                     doc.addPage(page);
-                    PDImageXObject  pdImageXObject = JPEGFactory.createFromImage(doc, bimg, 0.5f, 10);
+                    PDImageXObject pdImageXObject = JPEGFactory.createFromImage(doc, bimg, 0.5f, 10);
 
                     PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-
                     contentStream.drawImage(pdImageXObject, 0, 0);
-
                     contentStream.close();
-
-
-
-                   /* PDPage blankPage = new PDPage();
-                    document.addPage(blankPage);
-                    BufferedImage img = ImageIO.read(new File(imgPass.toString()));
-                    PDJpeg jpeg = new PDJpeg(document, img);
-                    PageFormat pf = document.getPageFormat(0);
-                    double pageWidth = pf.getWidth();
-                    double pageHeight = pf.getHeight();
-                    PDPageContentStream contentStream = new PDPageContentStream(document, blankPage);
-                    contentStream.drawImage(jpeg, 0, 0);
-                    contentStream.drawXObject(jpeg, 0, 0, (float) pageWidth, (float) pageHeight);
-                    contentStream.close();*/
                 }
 
                 if (!Files.exists(Paths.get(newFolder + "\\" + newFileName))) {
@@ -184,8 +173,6 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
             }
         }
 
-
-
         stepsCount++;
 
 
@@ -198,13 +185,11 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
         String indStr = indCount + "";
         int intSize = indStr.length();
 
-        String result = "";
+        StringBuilder result = new StringBuilder();
 
-        for (int i = intSize; i < 5; i++) {
-            result = result + "0";
-        }
-        result = "AAA" + result + indCount;
+        result.append("0".repeat(Math.max(0, 5 - intSize)));
+        result = new StringBuilder("AAA" + result + indCount);
 
-        return result;
+        return result.toString();
     }
 }

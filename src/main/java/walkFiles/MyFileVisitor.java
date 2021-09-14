@@ -24,7 +24,8 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
 
     private List<Info> list;
 
-    private int indCount = 1;
+    private int indCount = 1726;
+
 
     public MyFileVisitor(List<Info> list) {
         this.list = list;
@@ -73,7 +74,7 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
                                 rtfPath = file;
                             }
 
-                            if (file.toString().endsWith("pdf") && !file.toString().toLowerCase().contains("запрос")) {
+                            if (file.toString().toLowerCase().endsWith("pdf") && !file.toString().toLowerCase().contains("запрос")) {
                                 pdfPath = file;
                             }
 
@@ -115,6 +116,8 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
                 int count = doc.getNumberOfPages();
                 doc.close();
 
+
+
                 String index = indVisual(indCount++);
                 String newFileName = "Копия требования кредитора с приложениями (" +
                         index + ", " + creditorName + ") на " + count + "л..pdf";
@@ -126,7 +129,6 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
 
                 list.add(new Info(index, creditorName));
 
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -134,6 +136,8 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
 
 
         if (jpgList.size() > 0) {
+
+
 
             String index = indVisual(indCount++);
             String newFileName = "Копия требования кредитора с приложениями (" +
@@ -172,7 +176,11 @@ public class MyFileVisitor extends SimpleFileVisitor<Path> {
             }
         }
 
-        stepsCount++;
+
+
+
+
+            stepsCount++;
         return FileVisitResult.CONTINUE;
     }
 

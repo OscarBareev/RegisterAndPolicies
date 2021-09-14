@@ -14,7 +14,6 @@ public class FilesWalker {
 
     private List<Info> infoList = new ArrayList<>();
 
-
     public void checkPdf(String path) throws IOException {
 
         MyFileVisitor visitor = new MyFileVisitor(infoList);
@@ -76,6 +75,7 @@ public class FilesWalker {
         FileOutputStream outstream = new FileOutputStream(filePath);
         workbook.write(outstream);
         outstream.close();
+
         infoList.clear();
     }
 
